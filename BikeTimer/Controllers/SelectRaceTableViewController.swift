@@ -7,12 +7,30 @@
 //
 
 import UIKit
+import Firebase
 
 class SelectRaceTableViewController: UITableViewController {
-
+    var races:[[String:Any]] = []
+    @IBAction func toNewRace(_ sender: Any) {
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        let ref = Database.database().reference().child("races")
+        ref.observe(.value) { (snapshot) in
+            if let data = snapshot.value as? [String:[String:Any]] {
+                for race in data {
+                    var newRace = race.value
+                    newRace["key"] = race.key
+                    self.races.append(newRace)
+//                    races.append(race)
+                }
+            } else {
+                // load nothing
+            }
+            self.tableView.reloadData()
+        }
+        
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -24,24 +42,36 @@ class SelectRaceTableViewController: UITableViewController {
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return 0
+        return 1
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return 0
+        return races.count
     }
 
-    /*
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
-
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        var race = races[indexPath.row]
+        cell.textLabel?.text = race["name"] as? String
+//        cell.detailTextLabel?.text = "Test"
+//        cell.addSubview(UILabel)
+//        race["created"] as? String
         // Configure the cell...
+        
 
         return cell
     }
-    */
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return CGFloat(55)
+    }
 
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        self.performSegue(withIdentifier: "toRace", sender: races[indexPath.row])
+    }
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -77,14 +107,21 @@ class SelectRaceTableViewController: UITableViewController {
     }
     */
 
-    /*
+
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "toRace" {
+            let race = sender as! [String:Any]
+            let viewController:TimerViewController = segue.destination as! TimerViewController
+            viewController.race = race
+            
+//            viewController.song_types = "dance"
+        }
         // Get the new view controller using segue.destination.
         // Pass the selected object to the new view controller.
     }
-    */
+
 
 }
